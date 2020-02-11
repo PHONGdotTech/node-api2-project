@@ -122,7 +122,7 @@ router.put(`/:id`, (req, res)=>{
             } else {
                 Posts.update(req.params.id, req.body)
                 .then(updatedCount => {
-                    res.status(200).json(updatedCount)
+                    res.status(200).json({id: req.params.id, ...req.body})
                 })
                 .catch(err =>{
                     res.status(500).json({error: "The post information could not be modified."})
