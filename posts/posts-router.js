@@ -12,17 +12,15 @@ router.post(`/`, (req, res)=>{
             res.status(201).json({...req.body, id: insertedID.id})
         })
         .catch(err =>{
-            console.log(err)
             res.status(500).json({error: "There was an error while saving the post to the database"})
         })
     }
-    
 })
 
 //post a comment
 router.post(`/:id/comments`, (req, res)=>{
     if (!req.body.text){
-        res.status(400).json({errorMessage: "Please provide text for the comment."})
+        res.status(400).json({error: "Please provide text for the comment."})
     } else {
         Posts.findById(req.params.id)
         .then((post)=>{
@@ -39,11 +37,9 @@ router.post(`/:id/comments`, (req, res)=>{
             }
         })
         .catch(err =>{
-            res.status(500).json({error:"There was an error while saving the comment to the database"})
+            res.status(500).json({error:"The post information could not be retrieved."})
         })
-        
     }
-    
 })
 
 //get all posts
@@ -53,8 +49,7 @@ router.get(`/`, (req, res)=>{
         res.status(200).json(posts)
     })
     .catch(err =>{
-        console.log(err)
-        res.status(500).json({errorMessage: "error message"})
+        res.status(500).json({error: "The posts information could not be retrieved."})
     })
 })
 
@@ -62,47 +57,81 @@ router.get(`/`, (req, res)=>{
 router.get(`/:id`, (req, res)=>{
     Posts.findById(req.params.id)
     .then(post => {
-        res.status(200).json(post)
+        if (post.length === 0){
+            res.status(404).json({message: "The post with the specified ID does not exist."})
+        } else {
+            res.status(200).json(post)
+        }
     })
     .catch(err =>{
-        console.log(err)
-        res.status(500).json({errorMessage: "error message"})
+        res.status(500).json({error: "The post information could not be retrieved."})
     })
 })
 
 //get all comments for a specific post
 router.get(`/:id/comments`, (req, res)=>{
-    Posts.findPostComments(req.params.id)
-    .then(posts => {
-        res.status(200).json(posts)
+    Posts.findById(req.params.id)
+    .then(post => {
+        if (post.length === 0){
+            res.status(404).json({message: "The post with the specified ID does not exist."})
+        } else {
+            Posts.findPostComments(req.params.id)
+            .then(comments => {
+                res.status(200).json(comments)
+            })
+            .catch(err =>{
+                res.status(500).json({error: "The comments information could not be retrieved."})
+            })
+        }
     })
     .catch(err =>{
-        console.log(err)
-        res.status(500).json({errorMessage: "error message"})
+        res.status(500).json({error: "The post information could not be retrieved."})
     })
 })
 
 //delete a specific post
 router.delete(`/:id`, (req, res)=>{
-    Posts.remove(req.params.id)
-    .then(removedID => {
-        res.status(200).json(removedID)
+    Posts.findById(req.params.id)
+    .then(post => {
+        if (post.length === 0){
+            res.status(404).json({message: "The post with the specified ID does not exist."})
+        } else {
+            Posts.remove(req.params.id)
+            .then(removedID => {
+                res.status(200).json(removedID)
+            })
+            .catch(err =>{
+                res.status(500).json({error: "The post could not be removed"})
+            })
+        }
     })
     .catch(err =>{
-        console.log(err)
-        res.status(500).json({errorMessage: "error message"})
+        res.status(500).json({error: "The post information could not be retrieved."})
     })
 })
 
 //update a specific post
 router.put(`/:id`, (req, res)=>{
-    Posts.update(req.params.id, req.body)
-    .then(updatedCount => {
-        res.status(200).json(updatedCount)
+    Posts.findById(req.params.id)
+    .then(post => {
+        if (post.length === 0){
+            res.status(404).json({message: "The post with the specified ID does not exist."})
+        } else {
+            if (!req.body.title || !req.body.contents){
+                res.status(404).json({error: "Please provide title and contents for the post."})
+            } else {
+                Posts.update(req.params.id, req.body)
+                .then(updatedCount => {
+                    res.status(200).json(updatedCount)
+                })
+                .catch(err =>{
+                    res.status(500).json({error: "The post information could not be modified."})
+                })
+            }
+        }
     })
     .catch(err =>{
-        console.log(err)
-        res.status(500).json({errorMessage: "error message"})
+        res.status(500).json({error: "The post information could not be retrieved."})
     })
 })
 
