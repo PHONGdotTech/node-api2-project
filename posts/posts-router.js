@@ -4,14 +4,19 @@ const router = express.Router();
 
 //post a post
 router.post(`/`, (req, res)=>{
-    Posts.insert(req.body)
-    .then(insertedID => {
-        res.status(201).json(insertedID)
-    })
-    .catch(err =>{
-        console.log(err)
-        res.status(500).json({errorMessage: "error message"})
-    })
+    if (!req.body.title || !req.body.contents){
+        res.status(400).json({errorMessage: "Please provide title and contents for the post."})
+    } else {
+        Posts.insert(req.body)
+        .then(insertedID => {
+            res.status(201).json({...req.body, id: insertedID.id})
+        })
+        .catch(err =>{
+            console.log(err)
+            res.status(500).json({error: "There was an error while saving the post to the database"})
+        })
+    }
+    
 })
 
 //post a comment
