@@ -21,14 +21,29 @@ router.post(`/`, (req, res)=>{
 
 //post a comment
 router.post(`/:id/comments`, (req, res)=>{
-    Posts.insertComment(req.body)
-    .then(insertedID => {
-        res.status(201).json(insertedID)
-    })
-    .catch(err =>{
-        console.log(err)
-        res.status(500).json({errorMessage: "error message"})
-    })
+    if (!req.body.text){
+        res.status(400).json({errorMessage: "Please provide text for the comment."})
+    } else {
+        Posts.findById(req.params.id)
+        .then((post)=>{
+            if (post.length === 0) {
+                res.status(404).json({message: "The post with the specified ID does not exist."})
+            } else {
+                Posts.insertComment({...req.body, post_id: req.params.id})
+                .then(insertedID => {
+                    res.status(201).json({id: insertedID.id, ...req.body})
+                })
+                .catch(err =>{
+                    res.status(500).json({error:"There was an error while saving the comment to the database"})
+                })
+            }
+        })
+        .catch(err =>{
+            res.status(500).json({error:"There was an error while saving the comment to the database"})
+        })
+        
+    }
+    
 })
 
 //get all posts
